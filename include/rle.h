@@ -15,9 +15,6 @@ const char *const DEFAULT_FILE_NAME = "input.txt";
 //encodes input buffer in read length encoding (don't forget to free result)
 char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize);
 
-//reads text from file, containing ONLY alpha characters (don't forget to free result)
-char *read_file(const char *filename, size_t *outsize);
-
 //decodes input buffer in read length encoding (don't forget to free result)
 char *rle_decode(const char *encoded, size_t encoded_size, size_t *outsize);
 

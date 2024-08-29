@@ -1,12 +1,11 @@
-#include "rle.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
+#include "rle.h"
+#include "utils.h"
 
-static long file_size(FILE *file);
-static void *recalloc(void *memcell, size_t old_size, size_t new_size);
 static size_t next_size(size_t old_size, size_t additional_chars, size_t old_allocated_size);
 static size_t count_digits(size_t number);
 void expand_if_needed(char **memcell, size_t *current_allocated_size, size_t additional_chars, size_t used_size);
@@ -16,6 +15,10 @@ char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
     assert(input_buffer != NULL);
     assert(input_size   != NULL);
     assert(outsize      != NULL);
+
+    for(size_t i = 0; i < input_size; i++)
+        if(!isalpha(input_buffer[i]))
+            return NULL;
 
     *outsize = 0;
     size_t current_allocated_size = input_size * 2;
@@ -45,6 +48,10 @@ char *rle_decode(const char *encoded, size_t encoded_size, size_t *outsize) {
     assert(encoded != NULL);
     assert(outsize != NULL);
 
+    for(size_t i = 0; i < encoded_size; i++)
+        if(!isalpha(encoded[i]) && !isdigit(encoded[i]))
+            return NULL;
+
     *outsize = 0;
     size_t current_allocated_size = 2 * encoded_size;
     char *decoded = (char *)calloc(current_allocated_size, sizeof(char));
@@ -68,67 +75,6 @@ char *rle_decode(const char *encoded, size_t encoded_size, size_t *outsize) {
         *outsize += counter;
     }
     return decoded;
-}
-
-char *read_file(const char *filename, size_t *outsize) {
-    assert(filename != NULL);
-    assert(outsize  != NULL);
-
-    FILE *input = fopen(filename, "r");
-    if(input == NULL) {
-        printf("There is no file: %s\n", filename);
-        return NULL;
-    }
-
-    long size = file_size(input);
-    if(size < 0)
-        return NULL;
-
-    *outsize = (size_t)size;
-    char *buffer = (char *)calloc(*outsize + 1, sizeof(char));
-    if(buffer == NULL)
-        return NULL;
-
-    if(fread(buffer, sizeof(char), *outsize, input) != *outsize) {
-        free(buffer);
-        buffer = NULL;
-        return NULL;
-    }
-
-    fclose(input);
-    for(size_t i =0; i < *outsize; i++)
-        if(!isalpha(buffer[i])) {
-            free(buffer);
-            return NULL;
-        }
-
-    return buffer;
-}
-
-long file_size(FILE *file) {
-    assert(file != NULL);
-    if(fseek(file, 0, 2) != 0)
-        return -1;
-
-    long size = ftell(file);
-    if(size < 0)
-        return -1;
-
-    if(fseek(file, 0, 0) != 0)
-        return -1;
-
-    return size;
-}
-
-//safe realloc, sets memory to 0
-void *recalloc(void *memcell, size_t old_size, size_t new_size) {
-    void *new_memcell = (char *)realloc(memcell, new_size);
-    if(new_memcell == NULL) {
-        free(memcell);
-        return NULL;
-    }
-    memset((char *)new_memcell + old_size, 0, new_size - old_size);
-    return new_memcell;
 }
 
 //finds next size depending on current size and number of characters needed to add
