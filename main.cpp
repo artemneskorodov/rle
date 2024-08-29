@@ -7,8 +7,10 @@ const char *get_filename(int argc, const char *argv[]);
 
 int main(int argc, const char *argv[]) {
     const char *filename = get_filename(argc, argv);
-    if(filename == NULL)
+    if(filename == NULL) {
+        printf("Unexpected parametre: %s\n", argv[2]);
         return EXIT_FAILURE;
+    }
 
     FILE *input_file = fopen(filename, "r");
     if(input_file == NULL) {
@@ -18,12 +20,11 @@ int main(int argc, const char *argv[]) {
 
     size_t input_size = 0;
     char *input = read_file(input_file, &input_size);
+    fclose(input_file);
     if(input == NULL) {
-        fclose(input_file);
         printf("Error reading input file\n");
         return EXIT_FAILURE;
     }
-    fclose(input_file);
 
     size_t encoded_size = 0;
     char *encoded = rle_encode(input, input_size, &encoded_size);
@@ -45,10 +46,10 @@ int main(int argc, const char *argv[]) {
     }
 
     printf("\n"
-           "|   Original: %s \n"
-           "|    Encoded: %s \n"
-           "|Compression: %lg\n"
-           "|    Decoded: %s \n\n",
+           "|    Original: %s \n\n"
+           "|     Encoded: %s \n\n"
+           "| Compression: %lg\n\n"
+           "|     Decoded: %s \n\n",
            input, encoded, compression_ratio, decoded);
 
     free(encoded);
@@ -64,8 +65,7 @@ const char *get_filename(int argc, const char *argv[]) {
     else if(argc == 2) {
         return argv[1];
     }
-    else{
-        printf("Unexpected parametre: %s\n", argv[2]);
+    else
         return NULL;
-    }
+
 }
