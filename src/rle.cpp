@@ -7,8 +7,7 @@
 #include "utils.h"
 
 static size_t next_size(size_t old_size, size_t additional_chars, size_t old_allocated_size);
-static size_t count_digits(size_t number);
-void expand_if_needed(char **memcell, size_t *current_allocated_size, size_t additional_chars, size_t used_size);
+static void expand_if_needed(char **memcell, size_t *current_allocated_size, size_t additional_chars, size_t used_size);
 
 //ENCODING
 char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
@@ -86,18 +85,10 @@ size_t next_size(size_t old_size, size_t additional_chars, size_t old_allocated_
     return new_size;
 }
 
-//counts digits in number
-size_t count_digits(size_t number) {
-    size_t digits_number = 0;
-    while(number != 0) {
-        digits_number++;
-        number /= 10;
-    }
-    return digits_number;
-}
-
 //expands memory cell if current used size together with needed additional reaches half of the size
 void expand_if_needed(char **memcell, size_t *current_allocated_size, size_t additional_chars, size_t used_size) {
+    assert(current_allocated_size != NULL);
+    assert(memcell                != NULL);
     if(used_size + additional_chars < (*current_allocated_size) / 2)
         return ;
 

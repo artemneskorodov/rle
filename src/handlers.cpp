@@ -6,20 +6,22 @@
 #include "utils.h"
 #include "handlers.h"
 
-static const size_t MAX_USER_INPUT = 256;
+static const size_t MAX_USER_INPUT = 10;
 
 static exit_code_t handle_encode_from_console(void);
 static exit_code_t handle_encode_from_file(const char *filename);
 static exit_code_t handle_decode_from_console(void);
 static exit_code_t handle_decode_from_file(const char *filename);
+static exit_code_t check_encoding(const char *encoded, const char *decoded, size_t decoded_size);
+static exit_code_t check_decoding(const char *encoded, const char *decoded, size_t encoded_size);
 
 exit_code_t handle_help(const int argc, const char *argv[]) {
     if(argc > 2)
         return handle_unknown_flag(argv[2]);
-    printf("'--help' or '-h' for help\n"
+    printf("'--help'   or '-h' for help\n"
            "'--encode' or '-e' to encode (type file name to read from file)\n"
            "'--decode' or '-d' to decode (type file name to read from file)\n"
-           "'--test' or '-t' to run tests "
+           "'--test'   or '-t' to run tests "
            "(first parameter has to be file with decoded text and second expected encoded)\n");
     return EXIT_CODE_SUCCESS;
 }
@@ -49,10 +51,16 @@ exit_code_t handle_decode(const int argc, const char *argv[]) {
 exit_code_t handle_test(const int argc, const char *argv[]) {
     assert(argc >= 2   );
     assert(argv != NULL);
+
     if(argc < 4) {
         printf("Enter file names('--help' to get helped)\n");
         return EXIT_CODE_FAILURE;
     }
+    if(argc > 4) {
+        handle_unknown_flag(argv[4]);
+        return EXIT_CODE_FAILURE;
+    }
+
     size_t encoded_size = 0, decoded_size = 0;
     char *encoded = NULL;
     char *decoded = NULL;
@@ -66,44 +74,22 @@ exit_code_t handle_test(const int argc, const char *argv[]) {
         return EXIT_CODE_FAILURE;
     }
 
-    size_t test_size = 0;
-    char *encoded_test = rle_encode(decoded, decoded_size, &test_size);
-    if(encoded_test == NULL) {
-        printf("Error while encoding\n");
+    if(check_encoding(encoded, decoded, decoded_size) != EXIT_CODE_SUCCESS) {
         free(encoded);
         free(decoded);
         return EXIT_CODE_FAILURE;
     }
-    if(strcmp(encoded_test, encoded) != 0) {
-        printf("Caught error while encoding:\n%s\n\n"
-               "Expected:\n\n%s\n\n"
-               "Actual:\n\n%s\n\n", decoded, encoded, encoded_test);
-        free(encoded);
-        free(decoded);
-        free(encoded_test);
-    }
-    free(encoded_test);
 
-    char *decoded_test = rle_decode(encoded, encoded_size, &test_size);
-    if(decoded_test == NULL) {
-        printf("Error while decoding\n");
+    if(check_decoding(encoded, decoded, encoded_size) != EXIT_CODE_SUCCESS) {
         free(encoded);
         free(decoded);
         return EXIT_CODE_FAILURE;
     }
-    if(strcmp(decoded_test, decoded) != 0) {
-        printf("Caught error while decoding:\n%s\n\n"
-               "Expected:\n\n%s\n\n"
-               "Actual:\n\n%s\n\n", encoded, decoded, decoded_test);
-        free(encoded);
-        free(decoded);
-        free(decoded_test);
-        return EXIT_CODE_FAILURE;
-    }
+
+
     free(encoded);
     free(decoded);
-    free(decoded_test);
-    printf("Test went successfully\n");
+    printf("Test were successful\n");
     return EXIT_CODE_SUCCESS;
 }
 
@@ -195,5 +181,45 @@ exit_code_t handle_decode_from_file(const char *filename) {
     printf("Encoded with rle:\n%s\nCompression: %f\n", decoded, (double)input_size / (double)decoded_size);
     free(decoded);
 
+    return EXIT_CODE_SUCCESS;
+}
+
+exit_code_t check_encoding(const char *encoded, const char *decoded, size_t decoded_size) {
+    size_t test_size = 0;
+    char *test = rle_encode(decoded, decoded_size, &test_size);
+    if(test == NULL) {
+        printf("Error while encoding\n");
+        return EXIT_CODE_FAILURE;
+    }
+
+    if(strcmp(test, encoded) != 0) {
+        printf("Caught error while encoding:\n%s\n\n"
+               "Expected:\n\n%s\n\n"
+               "Actual:\n\n%s\n\n", decoded, encoded, test);
+        free(test);
+        return EXIT_CODE_FAILURE;
+    }
+
+    free(test);
+    return EXIT_CODE_SUCCESS;
+}
+
+exit_code_t check_decoding(const char *encoded, const char *decoded, size_t encoded_size) {
+    size_t test_size = 0;
+    char *test = rle_decode(encoded, encoded_size, &test_size);
+    if(test == NULL) {
+        printf("Error while encoding\n");
+        return EXIT_CODE_FAILURE;
+    }
+
+    if(strcmp(test, decoded) != 0) {
+        printf("Caught error while decoding:\n%s\n\n"
+               "Expected:\n\n%s\n\n"
+               "Actual:\n\n%s\n\n", encoded, decoded, test);
+        free(test);
+        return EXIT_CODE_FAILURE;
+    }
+
+    free(test);
     return EXIT_CODE_SUCCESS;
 }

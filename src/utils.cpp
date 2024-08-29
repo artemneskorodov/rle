@@ -60,6 +60,8 @@ void *recalloc(void *memcell, size_t old_size, size_t new_size) {
 }
 
 char *copy_string(const char *string, size_t size) {
+    assert(string != NULL);
+
     char *copy = (char *)calloc(size + 1, sizeof(char));
     if(copy == NULL)
         return NULL;
@@ -68,8 +70,28 @@ char *copy_string(const char *string, size_t size) {
 }
 
 size_t get_input(char *buffer, size_t max_size) {
+    assert(buffer != NULL);
     size_t size = 0;
-    while((buffer[size++] = (char)getchar()) != '\n' && size < max_size);
+    while((buffer[size++] = (char)getchar()) != '\n' && size <= max_size);
     buffer[size--] = 0;
+    if(size == max_size)
+        clean_console();
+
     return size;
+}
+
+//counts digits in number
+size_t count_digits(size_t number) {
+    size_t digits_number = 0;
+    while(number != 0) {
+        digits_number++;
+        number /= 10;
+    }
+    return digits_number;
+}
+
+void clean_console(void) {
+    int c = getchar();
+    while(c != '\n' && c != EOF)
+        c = getchar();
 }
