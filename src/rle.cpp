@@ -11,6 +11,7 @@ static size_t next_size(size_t old_size, size_t additional_chars, size_t old_all
 static size_t count_digits(size_t number);
 void expand_if_needed(char **memcell, size_t *current_allocated_size, size_t additional_chars, size_t used_size);
 
+//ENCODING
 char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
     assert(input_buffer != NULL);
     assert(input_size   != NULL);
@@ -39,48 +40,7 @@ char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
     return encoded;
 }
 
-char *read_file(FILE *input, size_t *outsize) {
-    assert(input   != NULL);
-    assert(outsize != NULL);
-
-    long size = file_size(input);
-    if(size < 0)
-        return NULL;
-
-    *outsize = (size_t)size;
-    char *buffer = (char *)calloc(*outsize + 1, sizeof(char));
-    if(buffer == NULL)
-        return NULL;
-
-    if(fread(buffer, sizeof(char), *outsize, input) != *outsize) {
-        free(buffer);
-        buffer = NULL;
-        return NULL;
-    }
-    for(size_t i =0; i < *outsize; i++)
-        if(!isalpha(buffer[i])) {
-            free(buffer);
-            return NULL;
-        }
-
-    return buffer;
-}
-
-long file_size(FILE *file) {
-    assert(file != NULL);
-    if(fseek(file, 0, 2) != 0)
-        return -1;
-
-    long size = ftell(file);
-    if(size < 0)
-        return -1;
-
-    if(fseek(file, 0, 0) != 0)
-        return -1;
-
-    return size;
-}
-
+//DECODING
 char *rle_decode(const char *encoded, size_t encoded_size, size_t *outsize) {
     assert(encoded != NULL);
     assert(outsize != NULL);
@@ -108,6 +68,56 @@ char *rle_decode(const char *encoded, size_t encoded_size, size_t *outsize) {
         *outsize += counter;
     }
     return decoded;
+}
+
+char *read_file(const char *filename, size_t *outsize) {
+    assert(filename != NULL);
+    assert(outsize  != NULL);
+
+    FILE *input = fopen(filename, "r");
+    if(input == NULL) {
+        printf("There is no file: %s\n", filename);
+        return NULL;
+    }
+
+    long size = file_size(input);
+    if(size < 0)
+        return NULL;
+
+    *outsize = (size_t)size;
+    char *buffer = (char *)calloc(*outsize + 1, sizeof(char));
+    if(buffer == NULL)
+        return NULL;
+
+    if(fread(buffer, sizeof(char), *outsize, input) != *outsize) {
+        free(buffer);
+        buffer = NULL;
+        return NULL;
+    }
+
+    fclose(input);
+    for(size_t i =0; i < *outsize; i++)
+        if(!isalpha(buffer[i])) {
+            free(buffer);
+            return NULL;
+        }
+
+    return buffer;
+}
+
+long file_size(FILE *file) {
+    assert(file != NULL);
+    if(fseek(file, 0, 2) != 0)
+        return -1;
+
+    long size = ftell(file);
+    if(size < 0)
+        return -1;
+
+    if(fseek(file, 0, 0) != 0)
+        return -1;
+
+    return size;
 }
 
 //safe realloc, sets memory to 0

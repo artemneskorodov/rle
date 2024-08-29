@@ -12,17 +12,10 @@ int main(int argc, const char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    FILE *input_file = fopen(filename, "r");
-    if(input_file == NULL) {
-        printf("There is no file: %s\n", filename);
-        return EXIT_FAILURE;
-    }
-
     size_t input_size = 0;
-    char *input = read_file(input_file, &input_size);
-    fclose(input_file);
+    char *input = read_file(filename, &input_size);
     if(input == NULL) {
-        printf("Error reading input file\n");
+        printf("Error reading input file %s\n", filename);
         return EXIT_FAILURE;
     }
 
