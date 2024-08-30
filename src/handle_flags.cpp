@@ -8,9 +8,8 @@ exit_code_t handle_unknown_flag(const char *flag) {
     return EXIT_CODE_FAILURE;
 }
 
-flags_state_t register_mode(program_config_t *config, const char *long_name,
-                            const char *short_name, exit_code_t (*handler)(const int, const char *[])) {
-
+flags_state_t register_mode(program_config_t *config, const char *long_name, const char *short_name,
+                            exit_code_t (*handler)(const int, const char *[])) {
     assert(config     != NULL);
     assert(long_name  != NULL);
     assert(short_name != NULL);
@@ -36,14 +35,23 @@ flags_state_t choose_default(program_config_t *config, exit_code_t (*handler)(co
 }
 
 exit_code_t parse_flags(const int argc, const char *argv[], program_config_t *config) {
-    assert(argv   != NULL);
-    assert(config != NULL);
-    assert(argc   != 0   );
+    assert(argv                     != NULL);
+    assert(config                   != NULL);
+    assert(config->deafault_handler != NULL);
+    assert(argc                     >= 1   );
+    for(size_t i = 0; i < config->modes_number; i++) {
+        assert(config->modes[i].long_name  != NULL);
+        assert(config->modes[i].short_name != NULL);
+        assert(config->modes[i].handler    != NULL);
+    }
+
+    if(argc == 1)
+        return config->deafault_handler(argc, argv);
 
     while(config->modes_number != 0 &&
           strcmp(config->modes[config->modes_number - 1].long_name , argv[1]) != 0 &&
           strcmp(config->modes[config->modes_number - 1].short_name, argv[1]) != 0)
-        config->modes_number -= 1;
+        (config->modes_number)--;
 
     if(config->modes_number == 0)
         return handle_unknown_flag(argv[1]);

@@ -6,7 +6,7 @@
 #include "utils.h"
 #include "handlers.h"
 
-static const size_t MAX_USER_INPUT = 10;
+static const size_t MAX_USER_INPUT = 256;
 
 static exit_code_t handle_encode_from_console(void);
 static exit_code_t handle_encode_from_file(const char *filename);
@@ -16,6 +16,9 @@ static exit_code_t check_encoding(const char *encoded, const char *decoded, size
 static exit_code_t check_decoding(const char *encoded, const char *decoded, size_t encoded_size);
 
 exit_code_t handle_help(const int argc, const char *argv[]) {
+    assert(argc >= 1   );
+    assert(argv != NULL);
+
     if(argc > 2)
         return handle_unknown_flag(argv[2]);
     printf("'--help'   or '-h' for help\n"
@@ -27,48 +30,55 @@ exit_code_t handle_help(const int argc, const char *argv[]) {
 }
 
 exit_code_t handle_encode(const int argc, const char *argv[]) {
-    assert(argc >= 2   );
+    assert(argc >= 1   );
     assert(argv != NULL);
-    if(argc == 2)
+
+    if(argc == 1 || argc == 2)
         return handle_encode_from_console();
+
     else if(argc == 3)
         return handle_encode_from_file(argv[2]);
+
     else
         return handle_unknown_flag(argv[3]);
 }
 
 exit_code_t handle_decode(const int argc, const char *argv[]) {
-    assert(argc >= 2   );
+    assert(argc >= 1   );
     assert(argv != NULL);
-    if(argc == 2)
+
+    if(argc == 1 || argc == 2)
         return handle_decode_from_console();
+
     else if(argc == 3)
         return handle_decode_from_file(argv[2]);
+
     else
         return handle_unknown_flag(argv[3]);
 }
 
 exit_code_t handle_test(const int argc, const char *argv[]) {
-    assert(argc >= 2   );
+    assert(argc >= 1   );
     assert(argv != NULL);
 
     if(argc < 4) {
         printf("Enter file names('--help' to get helped)\n");
         return EXIT_CODE_FAILURE;
     }
+
     if(argc > 4) {
         handle_unknown_flag(argv[4]);
         return EXIT_CODE_FAILURE;
     }
 
     size_t encoded_size = 0, decoded_size = 0;
-    char *encoded = NULL;
-    char *decoded = NULL;
-    if((encoded = read_file(argv[2], &encoded_size)) == NULL) {
+    char *encoded = read_file(argv[2], &encoded_size);
+    if(encoded == NULL) {
         printf("Error while reading from %s\n", argv[2]);
         return EXIT_CODE_FAILURE;
     }
-    if((decoded = read_file(argv[3], &decoded_size)) == NULL) {
+    char *decoded = read_file(argv[3], &decoded_size);
+    if(decoded == NULL) {
         printf("Error while reading from %s\n", argv[3]);
         free(encoded);
         return EXIT_CODE_FAILURE;
@@ -79,13 +89,11 @@ exit_code_t handle_test(const int argc, const char *argv[]) {
         free(decoded);
         return EXIT_CODE_FAILURE;
     }
-
     if(check_decoding(encoded, decoded, encoded_size) != EXIT_CODE_SUCCESS) {
         free(encoded);
         free(decoded);
         return EXIT_CODE_FAILURE;
     }
-
 
     free(encoded);
     free(decoded);
@@ -100,15 +108,13 @@ exit_code_t handle_encode_from_console(void) {
 
     size_t encoded_size = 0;
     char *encoded = rle_encode(input, input_size, &encoded_size);
-
     if(encoded == NULL) {
         printf("Error, while encoding:\n%s\n", input);
         return EXIT_CODE_FAILURE;
     }
 
-    printf("Encoded with rle:\n%s\nCompression: %f\n", encoded, (double)input_size / (double)encoded_size);
+    printf("Encoded with RLE:\n%s\nCompression: %f\n", encoded, (double)input_size / (double)encoded_size);
     free(encoded);
-
     return EXIT_CODE_SUCCESS;
 }
 
@@ -127,15 +133,13 @@ exit_code_t handle_encode_from_file(const char *filename) {
 
     size_t encoded_size = 0;
     char *encoded = rle_encode(input, input_size, &encoded_size);
-
     if(encoded == NULL) {
         printf("Error, while encoding:\n%s\n", input);
         return EXIT_CODE_FAILURE;
     }
 
-    printf("Encoded with rle:\n%s\nCompression: %f\n", encoded, (double)input_size / (double)encoded_size);
+    printf("Encoded with RLE:\n%s\nCompression: %f\n", encoded, (double)input_size / (double)encoded_size);
     free(encoded);
-
     return EXIT_CODE_SUCCESS;
 }
 
@@ -146,15 +150,13 @@ exit_code_t handle_decode_from_console(void) {
 
     size_t decoded_size = 0;
     char *decoded = rle_decode(input, input_size, &decoded_size);
-
     if(decoded == NULL) {
         printf("Error, while decoding:\n%s\n", input);
         return EXIT_CODE_FAILURE;
     }
 
-    printf("Encoded with rle:\n%s\nCompression: %f\n", decoded, (double)decoded_size / (double)input_size);
+    printf("Decoded with RLE:\n%s\nCompression: %f\n", decoded, (double)decoded_size / (double)input_size);
     free(decoded);
-
     return EXIT_CODE_SUCCESS;
 }
 
@@ -172,19 +174,20 @@ exit_code_t handle_decode_from_file(const char *filename) {
 
     size_t decoded_size = 0;
     char *decoded = rle_decode(input, input_size, &decoded_size);
-
     if(decoded == NULL) {
-        printf("Error, while encoding:\n%s\n", input);
+        printf("Error, while decoding:\n%s\n", input);
         return EXIT_CODE_FAILURE;
     }
 
-    printf("Encoded with rle:\n%s\nCompression: %f\n", decoded, (double)input_size / (double)decoded_size);
+    printf("Decoded with RLE:\n%s\nCompression: %f\n", decoded, (double)decoded_size / (double)input_size);
     free(decoded);
-
     return EXIT_CODE_SUCCESS;
 }
 
 exit_code_t check_encoding(const char *encoded, const char *decoded, size_t decoded_size) {
+    assert(encoded != NULL);
+    assert(decoded != NULL);
+
     size_t test_size = 0;
     char *test = rle_encode(decoded, decoded_size, &test_size);
     if(test == NULL) {
@@ -205,10 +208,13 @@ exit_code_t check_encoding(const char *encoded, const char *decoded, size_t deco
 }
 
 exit_code_t check_decoding(const char *encoded, const char *decoded, size_t encoded_size) {
+    assert(encoded != NULL);
+    assert(decoded != NULL);
+
     size_t test_size = 0;
     char *test = rle_decode(encoded, encoded_size, &test_size);
     if(test == NULL) {
-        printf("Error while encoding\n");
+        printf("Error while decoding\n");
         return EXIT_CODE_FAILURE;
     }
 

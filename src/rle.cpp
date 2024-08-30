@@ -12,21 +12,20 @@ static void expand_if_needed(char **memcell, size_t *current_allocated_size, siz
 //ENCODING
 char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
     assert(input_buffer != NULL);
-    assert(input_size   != NULL);
     assert(outsize      != NULL);
 
     for(size_t i = 0; i < input_size; i++)
-        if(!isalpha(input_buffer[i]))
+        if(isdigit(input_buffer[i]))
             return NULL;
 
     *outsize = 0;
     size_t current_allocated_size = input_size * 2;
     char *encoded = (char *)calloc(current_allocated_size, sizeof(char));
 
-    for(size_t i = 0; i < input_size; ) {
+    for(size_t index = 0; index < input_size; ) {
         //counting same characters
         size_t counter = 0;
-        while(i + counter < input_size && input_buffer[i + counter] == input_buffer[i])
+        while(index + counter < input_size && input_buffer[index + counter] == input_buffer[index])
             counter++;
 
         //expanding allocated memory if needed
@@ -36,8 +35,8 @@ char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
             return NULL;
 
         //printing to encoded string in form nc, where n is number and c is letter
-        *outsize += sprintf(encoded + *outsize, "%llu%c", counter, input_buffer[i]);
-        i += counter;
+        *outsize += sprintf(encoded + *outsize, "%llu%c", counter, input_buffer[index]);
+        index += counter;
     }
     return encoded;
 }
@@ -47,22 +46,21 @@ char *rle_decode(const char *encoded, size_t encoded_size, size_t *outsize) {
     assert(encoded != NULL);
     assert(outsize != NULL);
 
-    for(size_t i = 0; i < encoded_size; i++)
-        if(!isalpha(encoded[i]) && !isdigit(encoded[i]))
-            return NULL;
-
     *outsize = 0;
     size_t current_allocated_size = 2 * encoded_size;
     char *decoded = (char *)calloc(current_allocated_size, sizeof(char));
     if(decoded == NULL)
         return NULL;
 
-    for(size_t i = 0; i < encoded_size; ) {
+    for(size_t index = 0; index < encoded_size; ) {
         //getting number for one character and this particular character
         size_t counter = 0;
-        for( ; isdigit(encoded[i]); i++)
-            counter = 10 * counter + (encoded[i] - '0');
-        char c = encoded[i++];
+        while(!isdigit(encoded[index]) && index < encoded_size)
+            index++;
+
+        for( ; isdigit(encoded[index]); index++)
+            counter = 10 * counter + (encoded[index] - '0');
+        char c = encoded[index++];
 
         //expanding allocated memory if needed
         expand_if_needed(&decoded, &current_allocated_size, counter, *outsize);
@@ -89,11 +87,12 @@ size_t next_size(size_t old_size, size_t additional_chars, size_t old_allocated_
 void expand_if_needed(char **memcell, size_t *current_allocated_size, size_t additional_chars, size_t used_size) {
     assert(current_allocated_size != NULL);
     assert(memcell                != NULL);
-    if(used_size + additional_chars < (*current_allocated_size) / 2)
-        return ;
 
-    size_t new_size = next_size(used_size, additional_chars, *current_allocated_size);
-    char *new_memcell = (char *)recalloc(*memcell, *current_allocated_size, new_size);
-    *memcell = new_memcell;
-    *current_allocated_size = new_size;
+    if(used_size + additional_chars >= (*current_allocated_size) / 2) {
+        size_t new_size = next_size(used_size, additional_chars, *current_allocated_size);
+        char *new_memcell = (char *)recalloc(*memcell, *current_allocated_size, new_size);
+
+        *memcell = new_memcell;
+        *current_allocated_size = new_size;
+    }
 }

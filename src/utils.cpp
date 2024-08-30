@@ -22,7 +22,7 @@ char *read_file(const char *filename, size_t *outsize) {
     if(buffer == NULL)
         return NULL;
 
-    if(fread(buffer, sizeof(char), *outsize, input) != *outsize) {
+    if(fread(buffer, sizeof(char), *outsize, input) <= 0) {
         free(buffer);
         buffer = NULL;
         return NULL;
@@ -35,6 +35,7 @@ char *read_file(const char *filename, size_t *outsize) {
 //file of size (negative in case of error)
 long file_size(FILE *file) {
     assert(file != NULL);
+
     if(fseek(file, 0, 2) != 0)
         return -1;
 
@@ -71,6 +72,7 @@ char *copy_string(const char *string, size_t size) {
 
 size_t get_input(char *buffer, size_t max_size) {
     assert(buffer != NULL);
+
     size_t size = 0;
     while((buffer[size++] = (char)getchar()) != '\n' && size <= max_size);
     buffer[size--] = 0;
