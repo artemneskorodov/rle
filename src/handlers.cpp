@@ -21,6 +21,7 @@ exit_code_t handle_help(const int argc, const char *argv[]) {
 
     if(argc > 2)
         return handle_unknown_flag(argv[2]);
+
     printf("'--help'   or '-h' for help\n"
            "'--encode' or '-e' to encode (type file name to read from file)\n"
            "'--decode' or '-d' to decode (type file name to read from file)\n"
