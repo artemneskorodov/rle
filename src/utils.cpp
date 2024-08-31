@@ -70,6 +70,7 @@ char *copy_string(const char *string, size_t size) {
     char *copy = (char *)calloc(size + 1, sizeof(char));
     if(copy == NULL)
         return NULL;
+
     memcpy(copy, string, size + 1);
     return copy;
 }
@@ -88,6 +89,9 @@ size_t get_input(char *buffer, size_t max_size) {
 
 //counts digits in number
 size_t count_digits(size_t number) {
+    if(number == 0)
+        return 0;
+
     size_t digits_number = 0;
     while(number != 0) {
         digits_number++;
