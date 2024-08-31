@@ -52,6 +52,7 @@ long file_size(FILE *file) {
 //safe realloc, sets memory to 0
 void *recalloc(void *memcell, size_t old_size, size_t new_size) {
     assert(memcell != NULL || old_size != 0);
+    assert(new_size        <  old_size     );
 
     void *new_memcell = (char *)realloc(memcell, new_size);
     if(new_memcell == NULL) {
