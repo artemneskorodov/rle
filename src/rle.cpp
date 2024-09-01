@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
+
 #include "rle.h"
 #include "utils.h"
 
@@ -10,22 +11,22 @@ static size_t next_size(size_t old_size, size_t additional_chars, size_t old_all
 static void expand_if_needed(char **memcell, size_t *current_allocated_size, size_t additional_chars, size_t used_size);
 
 //ENCODING
-char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
-    assert(input_buffer != NULL);
-    assert(outsize      != NULL);
+char *rle_encode(const char *decoded, size_t decoded_size, size_t *outsize) {
+    assert(decoded != NULL);
+    assert(outsize != NULL);
 
-    for(size_t i = 0; i < input_size; i++)
-        if(isdigit(input_buffer[i]))
+    for(size_t i = 0; i < decoded_size; i++)
+        if(isdigit(decoded[i]))
             return NULL;
 
     *outsize = 0;
-    size_t current_allocated_size = input_size * 2;
+    size_t current_allocated_size = decoded_size * 2;
     char *encoded = (char *)calloc(current_allocated_size, sizeof(char));
 
-    for(size_t index = 0; index < input_size; ) {
+    for(size_t index = 0; index < decoded_size; ) {
         //counting same characters
         size_t counter = 0;
-        while(index + counter < input_size && input_buffer[index + counter] == input_buffer[index])
+        while(index + counter < decoded_size && decoded[index + counter] == decoded[index])
             counter++;
 
         //expanding allocated memory if needed
@@ -35,7 +36,7 @@ char *rle_encode(const char *input_buffer, size_t input_size, size_t *outsize) {
             return NULL;
 
         //printing to encoded string in form nc, where n is number and c is letter
-        *outsize += sprintf(encoded + *outsize, "%llu%c", counter, input_buffer[index]);
+        *outsize += sprintf(encoded + *outsize, "%llu%c", counter, decoded[index]);
         index += counter;
     }
     return encoded;
@@ -75,9 +76,9 @@ char *rle_decode(const char *encoded, size_t encoded_size, size_t *outsize) {
 }
 
 //finds next size depending on current size and number of characters needed to add
-size_t next_size(size_t old_size, size_t additional_chars, size_t old_allocated_size) {
-    size_t new_size = old_allocated_size * 2;
-    while(old_size + additional_chars > new_size / 4)
+size_t next_size(size_t old_size, size_t additional_size, size_t allocated_memory) {
+    size_t new_size = allocated_memory * 2;
+    while(old_size + additional_size > new_size / 4)
         new_size *= 2;
 
     return new_size;

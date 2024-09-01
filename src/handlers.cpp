@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "handle_flags.h"
 #include "rle.h"
 #include "utils.h"
@@ -16,8 +17,8 @@ static exit_code_t check_encoding(const char *encoded, const char *decoded, size
 static exit_code_t check_decoding(const char *encoded, const char *decoded, size_t encoded_size);
 
 exit_code_t handle_help(const int argc, const char *argv[]) {
-    assert(argc >= 1   );
     assert(argv != NULL);
+    assert(argc >= 1   );
 
     if(argc > 2)
         return handle_unknown_flag(argv[2]);
@@ -31,8 +32,8 @@ exit_code_t handle_help(const int argc, const char *argv[]) {
 }
 
 exit_code_t handle_encode(const int argc, const char *argv[]) {
-    assert(argc >= 1   );
     assert(argv != NULL);
+    assert(argc >= 1   );
 
     if(argc == 1 || argc == 2)
         return handle_encode_from_console();
@@ -45,8 +46,8 @@ exit_code_t handle_encode(const int argc, const char *argv[]) {
 }
 
 exit_code_t handle_decode(const int argc, const char *argv[]) {
-    assert(argc >= 1   );
     assert(argv != NULL);
+    assert(argc >= 1   );
 
     if(argc == 1 || argc == 2)
         return handle_decode_from_console();
@@ -59,8 +60,8 @@ exit_code_t handle_decode(const int argc, const char *argv[]) {
 }
 
 exit_code_t handle_test(const int argc, const char *argv[]) {
-    assert(argc >= 1   );
     assert(argv != NULL);
+    assert(argc >= 1   );
 
     if(argc < 4) {
         printf("Enter file names('--help' to get helped)\n");

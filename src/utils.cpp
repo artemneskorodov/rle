@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
+
 #include "utils.h"
 
 char *read_file(const char *filename, size_t *outsize) {
@@ -52,7 +53,7 @@ long file_size(FILE *file) {
 //safe realloc, sets memory to 0
 void *recalloc(void *memcell, size_t old_size, size_t new_size) {
     assert(memcell != NULL || old_size != 0);
-    assert(new_size        <  old_size     );
+    assert(new_size        >  old_size     );
 
     void *new_memcell = (char *)realloc(memcell, new_size);
     if(new_memcell == NULL) {
@@ -89,14 +90,10 @@ size_t get_input(char *buffer, size_t max_size) {
 
 //counts digits in number
 size_t count_digits(size_t number) {
-    if(number == 0)
-        return 0;
-
-    size_t digits_number = 0;
-    while(number != 0) {
+    size_t digits_number = 1;
+    for(size_t power = 1; 10 * power <= number; power *= 10)
         digits_number++;
-        number /= 10;
-    }
+
     return digits_number;
 }
 
